@@ -1,4 +1,3 @@
-# $Id: PKGBUILD,v 1.82 2008/03/23 21:58:37 jgc Exp $
 # Maintainer: Jan de Groot <jgc@archlinux.org>
 pkgname=glibc
 pkgver=2.7
