@@ -5,7 +5,7 @@
 
 pkgname=glibc
 pkgver=2.9
-pkgrel=6
+pkgrel=7
 _glibcdate=20090418
 install=glibc.install
 backup=(etc/locale.gen
@@ -52,7 +52,7 @@ build() {
   patch -Np1 -i ${srcdir}/glibc-patches/glibc-fixes1.patch || return 1
 
   # fixes for gdb taken from upstream cvs, fixed FS#14481
-  patch -Np1 -i ${srcdir}/glibc-patches/glibc-2.9-libhread_db.patch
+  patch -Np0 -i ${srcdir}/glibc-patches/glibc-2.9-libthread_db.patch || return 1
 
   install -dm755 ${pkgdir}/etc
   touch ${pkgdir}/etc/ld.so.conf
