@@ -110,7 +110,7 @@ build() {
 
 check() {
   cd ${srcdir}/glibc-build
-  make -k check
+  make check
 }
 
 package() {
