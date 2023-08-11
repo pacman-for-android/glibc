@@ -9,7 +9,7 @@
 pkgbase=glibc
 pkgname=(glibc lib32-glibc)
 pkgver=2.38
-_commit=36f2487f13e3540be9ee0fb51876b1da72176d3f
+_commit=6b99458d197ab779ebb6ff632c168e2cbfa4f543
 pkgrel=2
 arch=(x86_64)
 url='https://www.gnu.org/software/libc'
@@ -45,8 +45,6 @@ prepare() {
   # which relies on DT_HASH to be present in these libs.
   # reconsider 2023-01
   patch -Np1 -i "${srcdir}"/reenable_DT_HASH.patch
-
-  patch -Np1 < ../PATCH-nscd-Do-not-rebuild-getaddrinfo-bug-30709.patch
 }
 
 build() {
