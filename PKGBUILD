@@ -22,7 +22,6 @@ source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
         lib32-glibc.conf
         sdt.h sdt-config.h
         reenable_DT_HASH.patch
-        PATCH-nscd-Do-not-rebuild-getaddrinfo-bug-30709.patch
 )
 validpgpkeys=(7273542B39962DF7B299931416792B4EA25340F8 # Carlos O'Donell
               BC7C7372637EC10C57D7AA6579C43DFBF1CF2187) # Siddhesh Poyarekar
@@ -32,8 +31,7 @@ b2sums=('SKIP'
         '7c265e6d36a5c0dff127093580827d15519b6c7205c2e1300e82f0fb5b9dd00b6accb40c56581f18179c4fbbc95bd2bf1b900ace867a83accde0969f7b609f8a'
         'a6a5e2f2a627cc0d13d11a82458cfd0aa75ec1c5a3c7647e5d5a3bb1d4c0770887a3909bfda1236803d5bc9801bfd6251e13483e9adf797e4725332cd0d91a0e'
         '214e995e84b342fe7b2a7704ce011b7c7fc74c2971f98eeb3b4e677b99c860addc0a7d91b8dc0f0b8be7537782ee331999e02ba48f4ccc1c331b60f27d715678'
-        '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0'
-        '2a83dad4bcca543a5a85e91ebbe2bbccb4f863044d9e6e65806be0ea43ba70dd4e1e76e1548f9d189e996d4fcda0afc75efebdc9431fe10f2b66d3d2e878615b')
+        '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0')
 
 prepare() {
   mkdir -p glibc-build lib32-glibc-build
