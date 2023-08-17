@@ -10,7 +10,7 @@ pkgbase=glibc
 pkgname=(glibc lib32-glibc)
 pkgver=2.38
 _commit=6b99458d197ab779ebb6ff632c168e2cbfa4f543
-pkgrel=2
+pkgrel=3
 arch=(x86_64)
 url='https://www.gnu.org/software/libc'
 license=(GPL LGPL)
@@ -22,6 +22,8 @@ source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
         lib32-glibc.conf
         sdt.h sdt-config.h
         reenable_DT_HASH.patch
+        fix-malloc-p1.patch
+        fix-malloc-p2.patch
 )
 validpgpkeys=(7273542B39962DF7B299931416792B4EA25340F8 # Carlos O'Donell
               BC7C7372637EC10C57D7AA6579C43DFBF1CF2187) # Siddhesh Poyarekar
@@ -31,7 +33,9 @@ b2sums=('SKIP'
         '7c265e6d36a5c0dff127093580827d15519b6c7205c2e1300e82f0fb5b9dd00b6accb40c56581f18179c4fbbc95bd2bf1b900ace867a83accde0969f7b609f8a'
         'a6a5e2f2a627cc0d13d11a82458cfd0aa75ec1c5a3c7647e5d5a3bb1d4c0770887a3909bfda1236803d5bc9801bfd6251e13483e9adf797e4725332cd0d91a0e'
         '214e995e84b342fe7b2a7704ce011b7c7fc74c2971f98eeb3b4e677b99c860addc0a7d91b8dc0f0b8be7537782ee331999e02ba48f4ccc1c331b60f27d715678'
-        '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0')
+        '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0'
+        '28c983bcebc0eeeb37a60756ccee50d587a99d5e2100430d5c0ee51a19d9b2176a4013574a7d72b5857302fbb60d371bbf0b3cdb4fc700a1dbe3aae4a42b04b9'
+        'c3e94f5b0999878ff472e32f49dc13c20eb9db68c633017cb7824617eb824cf6cff7ea53b92962926e0ee84fd39736616298dcb926356625dd124f3754e79932')
 
 prepare() {
   mkdir -p glibc-build lib32-glibc-build
@@ -43,6 +47,9 @@ prepare() {
   # which relies on DT_HASH to be present in these libs.
   # reconsider 2023-01
   patch -Np1 -i "${srcdir}"/reenable_DT_HASH.patch
+
+  patch -Np1 -i "${srcdir}"/fix-malloc-p1.patch
+  patch -Np1 -i "${srcdir}"/fix-malloc-p2.patch
 }
 
 build() {
