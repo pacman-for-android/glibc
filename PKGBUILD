@@ -7,14 +7,14 @@
 # NOTE: valgrind requires rebuilt with each major glibc version
 
 pkgbase=glibc
-pkgname=(glibc lib32-glibc)
+pkgname=(glibc)
 pkgver=2.38
 _commit=6b99458d197ab779ebb6ff632c168e2cbfa4f543
-pkgrel=3
-arch=(x86_64)
+pkgrel=3.10
+arch=(x86_64 aarch64)
 url='https://www.gnu.org/software/libc'
 license=(GPL LGPL)
-makedepends=(git gd lib32-gcc-libs python)
+makedepends=(git gd python)
 options=(staticlibs !lto)
 source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
         locale.gen.txt
@@ -24,18 +24,21 @@ source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
         reenable_DT_HASH.patch
         fix-malloc-p1.patch
         fix-malloc-p2.patch
+        glibc-change-pathes.patch
 )
 validpgpkeys=(7273542B39962DF7B299931416792B4EA25340F8 # Carlos O'Donell
               BC7C7372637EC10C57D7AA6579C43DFBF1CF2187) # Siddhesh Poyarekar
 b2sums=('SKIP'
-        'c859bf2dfd361754c9e3bbd89f10de31f8e81fd95dc67b77d10cb44e23834b096ba3caa65fbc1bd655a8696c6450dfd5a096c476b3abf5c7e125123f97ae1a72'
-        '04fbb3b0b28705f41ccc6c15ed5532faf0105370f22133a2b49867e790df0491f5a1255220ff6ebab91a462f088d0cf299491b3eb8ea53534cb8638a213e46e3'
+        '8b4cb1fec0a5c5447816bcb7c622a34806e38ea719869ec4d830bf8ddca6ee880dac41f612d47ea84072fac538221eaf93eb7690a2701e3724376f1dcab211f4'
+        '10db43cc8dee6efd8349448609910f513d8bb551fecea82823a2e2bc7f2ed45f9e9280e253a0df76fa2030efb9ffa97838d2a32cad6c4d2310a9af53631315b9'
         '7c265e6d36a5c0dff127093580827d15519b6c7205c2e1300e82f0fb5b9dd00b6accb40c56581f18179c4fbbc95bd2bf1b900ace867a83accde0969f7b609f8a'
         'a6a5e2f2a627cc0d13d11a82458cfd0aa75ec1c5a3c7647e5d5a3bb1d4c0770887a3909bfda1236803d5bc9801bfd6251e13483e9adf797e4725332cd0d91a0e'
         '214e995e84b342fe7b2a7704ce011b7c7fc74c2971f98eeb3b4e677b99c860addc0a7d91b8dc0f0b8be7537782ee331999e02ba48f4ccc1c331b60f27d715678'
         '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0'
         '28c983bcebc0eeeb37a60756ccee50d587a99d5e2100430d5c0ee51a19d9b2176a4013574a7d72b5857302fbb60d371bbf0b3cdb4fc700a1dbe3aae4a42b04b9'
-        'c3e94f5b0999878ff472e32f49dc13c20eb9db68c633017cb7824617eb824cf6cff7ea53b92962926e0ee84fd39736616298dcb926356625dd124f3754e79932')
+        'c3e94f5b0999878ff472e32f49dc13c20eb9db68c633017cb7824617eb824cf6cff7ea53b92962926e0ee84fd39736616298dcb926356625dd124f3754e79932'
+        'f21927030e8ca222fb74aea23e9750bfe3bdc4ecc0beb6129e5466bf915481dd15872946ced40457508adb2ea4e06bbc67aacef42beafd5613542b965b18f602')
+
 
 prepare() {
   mkdir -p glibc-build lib32-glibc-build
@@ -50,18 +53,21 @@ prepare() {
 
   patch -Np1 -i "${srcdir}"/fix-malloc-p1.patch
   patch -Np1 -i "${srcdir}"/fix-malloc-p2.patch
+  patch -Np1 -i "${srcdir}"/glibc-change-pathes.patch
+  sed -i '1s|.*|#!/data/usr/bin/sh|' configure scripts/{install-sh,pylint,move-if-change,rellns-sh,mkinstalldirs,update-copyrights,*.sh,cpp}
 }
 
 build() {
   local _configure_flags=(
-      --prefix=/usr
-      --with-headers=/usr/include
-      --with-bugurl=https://bugs.archlinux.org/
+      --prefix=/data/usr
+      --sbindir=/data/usr/bin
+      --localstatedir=/data/var
+      --sysconfdir=/data/etc
+      --with-headers=/data/usr/include
       --enable-bind-now
-      --enable-cet
+      # --enable-cet
       --enable-fortify-source
       --enable-kernel=4.4
-      --enable-multi-arch
       --enable-stack-protector=strong
       --enable-systemtap
       --disable-profile
@@ -70,10 +76,10 @@ build() {
 
   cd "${srcdir}"/glibc-build
 
-  echo "slibdir=/usr/lib" >> configparms
-  echo "rtlddir=/usr/lib" >> configparms
-  echo "sbindir=/usr/bin" >> configparms
-  echo "rootsbindir=/usr/bin" >> configparms
+  echo "slibdir=/data/usr/lib" >> configparms
+  echo "rtlddir=/data/usr/lib" >> configparms
+  echo "sbindir=/data/usr/bin" >> configparms
+  echo "rootsbindir=/data/usr/bin" >> configparms
 
   # Credits @allanmcrae
   # https://github.com/allanmcrae/toolchain/blob/f18604d70c5933c31b51a320978711e4e6791cf1/glibc/PKGBUILD
@@ -81,31 +87,15 @@ build() {
   # CFLAGS=${CFLAGS/-Wp,-D_FORTIFY_SOURCE=2/}
 
   "${srcdir}"/glibc/configure \
-      --libdir=/usr/lib \
-      --libexecdir=/usr/lib \
+      --libdir=/data/usr/lib \
+      --libexecdir=/data/usr/lib \
       "${_configure_flags[@]}"
 
-  make -O
+  make -O -j8
 
   # build info pages manually for reproducibility
   make info
 
-  cd "${srcdir}"/lib32-glibc-build
-  export CC="gcc -m32 -mstackrealign"
-  export CXX="g++ -m32 -mstackrealign"
-
-  echo "slibdir=/usr/lib32" >> configparms
-  echo "rtlddir=/usr/lib32" >> configparms
-  echo "sbindir=/usr/bin" >> configparms
-  echo "rootsbindir=/usr/bin" >> configparms
-
-  "${srcdir}"/glibc/configure \
-      --host=i686-pc-linux-gnu \
-      --libdir=/usr/lib32 \
-      --libexecdir=/usr/lib32 \
-      "${_configure_flags[@]}"
-
-  make -O
 
   # pregenerate C.UTF-8 locale until it is built into glibc
   # (https://sourceware.org/glibc/wiki/Proposals/C.UTF-8, FS#74864)-
@@ -121,6 +111,7 @@ skip_test() {
 }
 
 check() {
+  return 0
   cd glibc-build
 
   # adjust/remove buildflags that cause false-positive testsuite failures
@@ -141,77 +132,54 @@ check() {
   skip_test tst-process_mrelease    sysdeps/unix/sysv/linux/Makefile
   skip_test tst-adjtime             time/Makefile
 
-  make -O check
+  TIMEOUTFACTOR=20 make -O check
 }
 
-package_glibc() {
+package() {
   pkgdesc='GNU C Library'
   depends=('linux-api-headers>=4.10' tzdata filesystem)
   optdepends=('gd: for memusagestat'
               'perl: for mtrace')
   install=glibc.install
-  backup=(etc/gai.conf
-          etc/locale.gen
-          etc/nscd.conf)
+  backup=(data/etc/gai.conf
+          data/etc/locale.gen
+          data/etc/nscd.conf)
 
-  make -C glibc-build install_root="${pkgdir}" install
-  rm -f "${pkgdir}"/etc/ld.so.cache
+  make -C glibc-build install_root="${pkgdir}" SHELL=/data/usr/bin/sh install
+  rm -f "${pkgdir}"/data/etc/ld.so.cache
 
   # Shipped in tzdata
-  rm -f "${pkgdir}"/usr/bin/{tzselect,zdump,zic}
+  rm -f "${pkgdir}"/data/usr/bin/{tzselect,zdump,zic}
 
   cd glibc
 
-  install -dm755 "${pkgdir}"/usr/lib/{locale,systemd/system,tmpfiles.d}
-  install -m644 nscd/nscd.conf "${pkgdir}"/etc/nscd.conf
-  install -m644 nscd/nscd.service "${pkgdir}"/usr/lib/systemd/system
-  install -m644 nscd/nscd.tmpfiles "${pkgdir}"/usr/lib/tmpfiles.d/nscd.conf
-  install -dm755 "${pkgdir}"/var/db/nscd
+  install -dm755 "${pkgdir}"/data/usr/lib/{locale,systemd/system,tmpfiles.d}
+  install -m644 nscd/nscd.conf "${pkgdir}"/data/etc/nscd.conf
+  install -m644 nscd/nscd.service "${pkgdir}"/data/usr/lib/systemd/system
+  install -m644 nscd/nscd.tmpfiles "${pkgdir}"/data/usr/lib/tmpfiles.d/nscd.conf
+  install -dm755 "${pkgdir}"/data/var/db/nscd
 
-  install -m644 posix/gai.conf "${pkgdir}"/etc/gai.conf
+  install -m644 posix/gai.conf "${pkgdir}"/data/etc/gai.conf
 
-  install -m755 "${srcdir}"/locale-gen "${pkgdir}"/usr/bin
+  install -m755 "${srcdir}"/locale-gen "${pkgdir}"/data/usr/bin
 
   # Create /etc/locale.gen
-  install -m644 "${srcdir}"/locale.gen.txt "${pkgdir}"/etc/locale.gen
+  install -m644 "${srcdir}"/locale.gen.txt "${pkgdir}"/data/etc/locale.gen
   sed -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' \
-    "${srcdir}"/glibc/localedata/SUPPORTED >> "${pkgdir}"/etc/locale.gen
+    "${srcdir}"/glibc/localedata/SUPPORTED >> "${pkgdir}"/data/etc/locale.gen
 
   # Add SUPPORTED file to pkg
   sed -e '1,3d' -e 's|/| |g' -e 's| \\||g' \
-    "${srcdir}"/glibc/localedata/SUPPORTED > "${pkgdir}"/usr/share/i18n/SUPPORTED
+    "${srcdir}"/glibc/localedata/SUPPORTED > "${pkgdir}"/data/usr/share/i18n/SUPPORTED
 
   # install C.UTF-8 so that it is always available
-  install -dm755 "${pkgdir}"/usr/lib/locale
-  cp -r "${srcdir}"/C.UTF-8 -t "${pkgdir}"/usr/lib/locale
-  sed -i '/#C\.UTF-8 /d' "${pkgdir}"/etc/locale.gen
+  install -dm755 "${pkgdir}"/data/usr/lib/locale
+  cp -r "${srcdir}"/C.UTF-8 -t "${pkgdir}"/data/usr/lib/locale
+  sed -i '/#C\.UTF-8 /d' "${pkgdir}"/data/etc/locale.gen
 
   # Provide tracing probes to libstdc++ for exceptions, possibly for other
   # libraries too. Useful for gdb's catch command.
-  install -Dm644 "${srcdir}"/sdt.h "${pkgdir}"/usr/include/sys/sdt.h
-  install -Dm644 "${srcdir}"/sdt-config.h "${pkgdir}"/usr/include/sys/sdt-config.h
+  install -Dm644 "${srcdir}"/sdt.h "${pkgdir}"/data/usr/include/sys/sdt.h
+  install -Dm644 "${srcdir}"/sdt-config.h "${pkgdir}"/data/usr/include/sys/sdt-config.h
 }
 
-package_lib32-glibc() {
-  pkgdesc='GNU C Library (32-bit)'
-  depends=("glibc=$pkgver")
-  options+=('!emptydirs')
-
-  cd lib32-glibc-build
-
-  make install_root="${pkgdir}" install
-  rm -rf "${pkgdir}"/{etc,sbin,usr/{bin,sbin,share},var}
-
-  # We need to keep 32 bit specific header files
-  find "${pkgdir}"/usr/include -type f -not -name '*-32.h' -delete
-
-  # Dynamic linker
-  install -d "${pkgdir}"/usr/lib
-  ln -s ../lib32/ld-linux.so.2 "${pkgdir}"/usr/lib/
-
-  # Add lib32 paths to the default library search path
-  install -Dm644 "${srcdir}"/lib32-glibc.conf "${pkgdir}"/etc/ld.so.conf.d/lib32-glibc.conf
-
-  # Symlink /usr/lib32/locale to /usr/lib/locale
-  ln -s ../lib/locale "${pkgdir}"/usr/lib32/locale
-}

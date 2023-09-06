@@ -6,12 +6,12 @@
 #
 #     <locale> <charset>
 #
-#  where <locale> is one of the locales given in /usr/share/i18n/locales
-#  and <charset> is one of the character sets listed in /usr/share/i18n/charmaps
+#  where <locale> is one of the locales given in /data/usr/share/i18n/locales
+#  and <charset> is one of the character sets listed in /data/usr/share/i18n/charmaps
 #
 #  The locale-gen command will generate all the locales,
 #  placing them in /usr/lib/locale.
 #
-#  A list of supported locales is given in /usr/share/i18n/SUPPORTED
+#  A list of supported locales is given in /data/usr/share/i18n/SUPPORTED
 #  and is included in this file. Uncomment the needed locales below.
 #

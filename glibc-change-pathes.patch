@@ -1,0 +1,613 @@
+diff --git a/elf/sprof.c b/elf/sprof.c
+index 3eaa4758d6..a50853cbbb 100644
+--- a/elf/sprof.c
++++ b/elf/sprof.c
+@@ -768,8 +768,8 @@ load_profdata (const char *name, struct shobj *shobj)
+       /* A file with the given name does not exist in the current
+ 	 directory, try it in the default location where the profiling
+ 	 files are created.  */
+-      ext_name = (char *) alloca (strlen (name) + sizeof "/var/tmp/");
+-      stpcpy (stpcpy (ext_name, "/var/tmp/"), name);
++      ext_name = (char *) alloca (strlen (name) + sizeof "/data/var/tmp/");
++      stpcpy (stpcpy (ext_name, "/data/var/tmp/"), name);
+       name = ext_name;
+ 
+       fd = open (ext_name, O_RDONLY);
+diff --git a/libio/oldiopopen.c b/libio/oldiopopen.c
+index b3eccc1352..0052e84f78 100644
+--- a/libio/oldiopopen.c
++++ b/libio/oldiopopen.c
+@@ -106,7 +106,7 @@ _IO_old_proc_open (FILE *fp, const char *command, const char *mode)
+       for (p = old_proc_file_chain; p; p = p->next)
+ 	__close (_IO_fileno ((FILE *) p));
+ 
+-      execl ("/bin/sh", "sh", "-c", command, (char *) 0);
++      execl ("/data/usr/bin/sh", "sh", "-c", command, (char *) 0);
+       _exit (127);
+     }
+   __close (child_end);
+diff --git a/libio/stdio.h b/libio/stdio.h
+index 4cf9f1c012..ecf1ecc9af 100644
+--- a/libio/stdio.h
++++ b/libio/stdio.h
+@@ -117,7 +117,7 @@ typedef __fpos64_t fpos64_t;
+ 
+ #if defined __USE_MISC || defined __USE_XOPEN
+ /* Default path prefix for `tempnam' and `tmpnam'.  */
+-# define P_tmpdir	"/tmp"
++# define P_tmpdir	"/data/local/tmp"
+ #endif
+ 
+ #define L_tmpnam 20
+diff --git a/misc/fstab.h b/misc/fstab.h
+index 9f17e1b96a..e61ffb231d 100644
+--- a/misc/fstab.h
++++ b/misc/fstab.h
+@@ -45,8 +45,8 @@
+  * if type is "rq", then use concatenation of fs_file and "quotas" to locate
+  * quota file.
+  */
+-#define	_PATH_FSTAB	"/etc/fstab"
+-#define	FSTAB		"/etc/fstab"	/* deprecated */
++#define	_PATH_FSTAB	"/data/etc/fstab"
++#define	FSTAB		"/data/etc/fstab"	/* deprecated */
+ 
+ #define	FSTAB_RW	"rw"		/* read/write device */
+ #define	FSTAB_RQ	"rq"		/* read/write with quotas */
+diff --git a/misc/ttyent.h b/misc/ttyent.h
+index fe418a5377..02117eb621 100644
+--- a/misc/ttyent.h
++++ b/misc/ttyent.h
+@@ -34,7 +34,7 @@
+ 
+ #include <features.h>
+ 
+-#define	_PATH_TTYS	"/etc/ttys"
++#define	_PATH_TTYS	"/data/etc/ttys"
+ 
+ #define	_TTYS_OFF	"off"
+ #define	_TTYS_ON	"on"
+diff --git a/nscd/nscd-client.h b/nscd/nscd-client.h
+index 5588ade982..e2c71e5562 100644
+--- a/nscd/nscd-client.h
++++ b/nscd/nscd-client.h
+@@ -35,13 +35,13 @@
+ #define NSCD_VERSION 2
+ 
+ /* Path of the file where the PID of the running system is stored.  */
+-#define _PATH_NSCDPID	 "/var/run/nscd/nscd.pid"
++#define _PATH_NSCDPID	 "/data/var/run/nscd/nscd.pid"
+ 
+ /* Path for the Unix domain socket.  */
+-#define _PATH_NSCDSOCKET "/var/run/nscd/socket"
++#define _PATH_NSCDSOCKET "/data/var/run/nscd/socket"
+ 
+ /* Path for the configuration file.  */
+-#define _PATH_NSCDCONF	 "/etc/nscd.conf"
++#define _PATH_NSCDCONF	 "/data/etc/nscd.conf"
+ 
+ /* Maximum allowed length for the key.  */
+ #define MAXKEYLEN 1024
+diff --git a/nscd/nscd_stat.c b/nscd/nscd_stat.c
+index a1c2053234..b404560d1d 100644
+--- a/nscd/nscd_stat.c
++++ b/nscd/nscd_stat.c
+@@ -308,7 +308,7 @@ receive_print_stats (void)
+ 		"%15" PRIuMAX "  number of delays on rdlock\n"
+ 		"%15" PRIuMAX "  number of delays on wrlock\n"
+ 		"%15" PRIuMAX "  memory allocations failed\n"
+-		"%15s  check /etc/%s for changes\n"),
++		"%15s  check /data/etc/%s for changes\n"),
+ 	      dbnames[i], enabled, persistent, shared,
+ 	      data.dbs[i].module,
+ 	      data.dbs[i].datasize, data.dbs[i].dataused,
+diff --git a/nss/db-Makefile b/nss/db-Makefile
+index 0dcf764cd6..aed629ca57 100644
+--- a/nss/db-Makefile
++++ b/nss/db-Makefile
+@@ -17,11 +17,11 @@
+ # License along with the GNU C Library; if not, see
+ # <https://www.gnu.org/licenses/>.
+ 
+-DATABASES = $(wildcard /etc/passwd /etc/group /etc/ethers /etc/protocols \
+-		       /etc/rpc /etc/services /etc/shadow /etc/gshadow \
+-		       /etc/netgroup)
++DATABASES = $(wildcard /data/etc/passwd /data/etc/group /data/etc/ethers /data/etc/protocols \
++		       /data/etc/rpc /data/etc/services /data/etc/shadow /data/etc/gshadow \
++		       /data/etc/netgroup)
+ 
+-VAR_DB = /var/db
++VAR_DB = /data/var/db
+ 
+ AWK = awk
+ MAKEDB = makedb --quiet
+@@ -29,7 +29,7 @@ MAKEDB = makedb --quiet
+ all: $(patsubst %,$(VAR_DB)/%.db,$(notdir $(DATABASES)))
+ 
+ 
+-$(VAR_DB)/passwd.db: /etc/passwd
++$(VAR_DB)/passwd.db: /data/etc/passwd
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { FS=":"; OFS=":" } \
+ 		 /^[ \t]*$$/ { next } \
+@@ -39,7 +39,7 @@ $(VAR_DB)/passwd.db: /etc/passwd
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/group.db: /etc/group
++$(VAR_DB)/group.db: /data/etc/group
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { FS=":"; OFS=":" } \
+ 		 /^[ \t]*$$/ { next } \
+@@ -61,7 +61,7 @@ $(VAR_DB)/group.db: /etc/group
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/ethers.db: /etc/ethers
++$(VAR_DB)/ethers.db: /data/etc/ethers
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) '/^[ \t]*$$/ { next } \
+ 		 /^[ \t]*#/ { next } \
+@@ -70,7 +70,7 @@ $(VAR_DB)/ethers.db: /etc/ethers
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/protocols.db: /etc/protocols
++$(VAR_DB)/protocols.db: /data/etc/protocols
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) '/^[ \t]*$$/ { next } \
+ 		 /^[ \t]*#/ { next } \
+@@ -81,7 +81,7 @@ $(VAR_DB)/protocols.db: /etc/protocols
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/rpc.db: /etc/rpc
++$(VAR_DB)/rpc.db: /data/etc/rpc
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) '/^[ \t]*$$/ { next } \
+ 		 /^[ \t]*#/ { next } \
+@@ -92,7 +92,7 @@ $(VAR_DB)/rpc.db: /etc/rpc
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/services.db: /etc/services
++$(VAR_DB)/services.db: /data/etc/services
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { FS="[ \t/]+" } \
+ 		 /^[ \t]*$$/ { next } \
+@@ -108,7 +108,7 @@ $(VAR_DB)/services.db: /etc/services
+ 	$(MAKEDB) -o $@ -
+ 	@echo "done."
+ 
+-$(VAR_DB)/shadow.db: /etc/shadow
++$(VAR_DB)/shadow.db: /data/etc/shadow
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { FS=":"; OFS=":" } \
+ 		 /^[ \t]*$$/ { next } \
+@@ -128,7 +128,7 @@ $(VAR_DB)/shadow.db: /etc/shadow
+ 	  echo; \
+ 	fi
+ 
+-$(VAR_DB)/gshadow.db: /etc/gshadow
++$(VAR_DB)/gshadow.db: /data/etc/gshadow
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { FS=":"; OFS=":" } \
+ 		 /^[ \t]*$$/ { next } \
+@@ -148,7 +148,7 @@ $(VAR_DB)/gshadow.db: /etc/gshadow
+ 	  echo; \
+ 	fi
+ 
+-$(VAR_DB)/netgroup.db: /etc/netgroup
++$(VAR_DB)/netgroup.db: /data/etc/netgroup
+ 	@printf %s "$(patsubst %.db,%,$(@F))... "
+ 	@$(AWK) 'BEGIN { ini=1 } \
+ 		 /^[ \t]*$$/ { next } \
+diff --git a/nss/nss_compat/compat-grp.c b/nss/nss_compat/compat-grp.c
+index 92d099eb23..d133c29a4b 100644
+--- a/nss/nss_compat/compat-grp.c
++++ b/nss/nss_compat/compat-grp.c
+@@ -108,7 +108,7 @@ internal_setgrent (ent_t *ent, int stayopen, int needent)
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = __nss_files_fopen ("/etc/group");
++      ent->stream = __nss_files_fopen ("/data/etc/group");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff --git a/nss/nss_compat/compat-initgroups.c b/nss/nss_compat/compat-initgroups.c
+index 90bcdb9737..0ccb576c65 100644
+--- a/nss/nss_compat/compat-initgroups.c
++++ b/nss/nss_compat/compat-initgroups.c
+@@ -122,7 +122,7 @@ internal_setgrent (ent_t *ent)
+   else
+     ent->blacklist.current = 0;
+ 
+-  ent->stream = __nss_files_fopen ("/etc/group");
++  ent->stream = __nss_files_fopen ("/data/etc/group");
+ 
+   if (ent->stream == NULL)
+     status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff --git a/nss/nss_compat/compat-pwd.c b/nss/nss_compat/compat-pwd.c
+index f9ad94006d..f35073ca0f 100644
+--- a/nss/nss_compat/compat-pwd.c
++++ b/nss/nss_compat/compat-pwd.c
+@@ -223,7 +223,7 @@ internal_setpwent (ent_t *ent, int stayopen, int needent)
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = __nss_files_fopen ("/etc/passwd");
++      ent->stream = __nss_files_fopen ("/data/etc/passwd");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff --git a/nss/nss_compat/compat-spwd.c b/nss/nss_compat/compat-spwd.c
+index c3ce41b186..138dbb0bef 100644
+--- a/nss/nss_compat/compat-spwd.c
++++ b/nss/nss_compat/compat-spwd.c
+@@ -178,7 +178,7 @@ internal_setspent (ent_t *ent, int stayopen, int needent)
+ 
+   if (ent->stream == NULL)
+     {
+-      ent->stream = __nss_files_fopen ("/etc/shadow");
++      ent->stream = __nss_files_fopen ("/data/etc/shadow");
+ 
+       if (ent->stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+diff --git a/nss/nss_files/files-XXX.c b/nss/nss_files/files-XXX.c
+index 2ed7184ca9..4a413891f6 100644
+--- a/nss/nss_files/files-XXX.c
++++ b/nss/nss_files/files-XXX.c
+@@ -39,7 +39,7 @@
+ 
+ #define ENTNAME_r	CONCAT(ENTNAME,_r)
+ 
+-#define DATAFILE	"/etc/" DATABASE
++#define DATAFILE	"/data/etc/" DATABASE
+ 
+ #ifdef NEED_H_ERRNO
+ # include <netdb.h>
+diff --git a/nss/nss_files/files-alias.c b/nss/nss_files/files-alias.c
+index 4601cb6ce9..f039034a22 100644
+--- a/nss/nss_files/files-alias.c
++++ b/nss/nss_files/files-alias.c
+@@ -42,7 +42,7 @@ internal_setent (FILE **stream)
+ 
+   if (*stream == NULL)
+     {
+-      *stream = __nss_files_fopen ("/etc/aliases");
++      *stream = __nss_files_fopen ("/data/etc/aliases");
+ 
+       if (*stream == NULL)
+ 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
+@@ -58,7 +58,7 @@ internal_setent (FILE **stream)
+ enum nss_status
+ _nss_files_setaliasent (void)
+ {
+-  return __nss_files_data_setent (nss_file_aliasent, "/etc/aliases");
++  return __nss_files_data_setent (nss_file_aliasent, "/data/etc/aliases");
+ }
+ libc_hidden_def (_nss_files_setaliasent)
+ 
+@@ -338,7 +338,7 @@ _nss_files_getaliasent_r (struct aliasent *result, char *buffer, size_t buflen,
+ 
+   struct nss_files_per_file_data *data;
+   enum nss_status status = __nss_files_data_open (&data, nss_file_aliasent,
+-						  "/etc/aliases", errnop, NULL);
++						  "/data/etc/aliases", errnop, NULL);
+   if (status != NSS_STATUS_SUCCESS)
+     return status;
+ 
+diff --git a/nss/nss_files/files-init.c b/nss/nss_files/files-init.c
+index d5c2795b30..fd8d6f590a 100644
+--- a/nss/nss_files/files-init.c
++++ b/nss/nss_files/files-init.c
+@@ -41,12 +41,12 @@ register_file (void (*cb) (size_t, struct traced_file *),
+ void
+ _nss_files_init (void (*cb) (size_t, struct traced_file *))
+ {
+-  register_file (cb, pwddb, "/etc/passwd", 0);
+-  register_file (cb, grpdb, "/etc/group", 0);
+-  register_file (cb, hstdb, "/etc/hosts", 0);
+-  register_file (cb, hstdb, "/etc/resolv.conf", 1);
+-  register_file (cb, servdb, "/etc/services", 0);
+-  register_file (cb, netgrdb, "/etc/netgroup", 0);
++  register_file (cb, pwddb, "/data/etc/passwd", 0);
++  register_file (cb, grpdb, "/data/etc/group", 0);
++  register_file (cb, hstdb, "/data/etc/hosts", 0);
++  register_file (cb, hstdb, "/data/etc/resolv.conf", 1);
++  register_file (cb, servdb, "/data/etc/services", 0);
++  register_file (cb, netgrdb, "/data/etc/netgroup", 0);
+ }
+ libc_hidden_def (_nss_files_init)
+ 
+diff --git a/nss/nss_files/files-initgroups.c b/nss/nss_files/files-initgroups.c
+index 929039af3c..c5c1682ae6 100644
+--- a/nss/nss_files/files-initgroups.c
++++ b/nss/nss_files/files-initgroups.c
+@@ -33,7 +33,7 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
+ 			   long int *size, gid_t **groupsp, long int limit,
+ 			   int *errnop)
+ {
+-  FILE *stream = __nss_files_fopen ("/etc/group");
++  FILE *stream = __nss_files_fopen ("/data/etc/group");
+   if (stream == NULL)
+     {
+       *errnop = errno;
+diff --git a/nss/nss_files/files-netgrp.c b/nss/nss_files/files-netgrp.c
+index 28ab40daca..57a63120e8 100644
+--- a/nss/nss_files/files-netgrp.c
++++ b/nss/nss_files/files-netgrp.c
+@@ -27,7 +27,7 @@
+ #include "netgroup.h"
+ #include <nss_files.h>
+ 
+-#define DATAFILE	"/etc/netgroup"
++#define DATAFILE	"/data/etc/netgroup"
+ 
+ libc_hidden_proto (_nss_files_endnetgrent)
+ 
+diff --git a/resolv/netdb.h b/resolv/netdb.h
+index ace9e482a1..c5cea4e98b 100644
+--- a/resolv/netdb.h
++++ b/resolv/netdb.h
+@@ -40,12 +40,12 @@
+ #include <bits/netdb.h>
+ 
+ /* Absolute file name for network data base files.  */
+-#define	_PATH_HEQUIV		"/etc/hosts.equiv"
+-#define	_PATH_HOSTS		"/etc/hosts"
+-#define	_PATH_NETWORKS		"/etc/networks"
+-#define	_PATH_NSSWITCH_CONF	"/etc/nsswitch.conf"
+-#define	_PATH_PROTOCOLS		"/etc/protocols"
+-#define	_PATH_SERVICES		"/etc/services"
++#define	_PATH_HEQUIV		"/data/etc/hosts.equiv"
++#define	_PATH_HOSTS		"/data/etc/hosts"
++#define	_PATH_NETWORKS		"/data/etc/networks"
++#define	_PATH_NSSWITCH_CONF	"/data/etc/nsswitch.conf"
++#define	_PATH_PROTOCOLS		"/data/etc/protocols"
++#define	_PATH_SERVICES		"/data/etc/services"
+ 
+ 
+ __BEGIN_DECLS
+diff --git a/resolv/res_hconf.c b/resolv/res_hconf.c
+index 89bd20be38..6663c24478 100644
+--- a/resolv/res_hconf.c
++++ b/resolv/res_hconf.c
+@@ -48,7 +48,7 @@
+ # define fgets_unlocked __fgets_unlocked
+ #endif
+ 
+-#define _PATH_HOSTCONF	"/etc/host.conf"
++#define _PATH_HOSTCONF	"/data/etc/host.conf"
+ 
+ /* Environment vars that all user to override default behavior:  */
+ #define ENV_HOSTCONF	"RESOLV_HOST_CONF"
+diff --git a/resolv/resolv.h b/resolv/resolv.h
+index f40d6c58ce..f407df88cf 100644
+--- a/resolv/resolv.h
++++ b/resolv/resolv.h
+@@ -91,7 +91,7 @@
+  */
+ 
+ #ifndef _PATH_RESCONF
+-#define _PATH_RESCONF        "/etc/resolv.conf"
++#define _PATH_RESCONF        "/data/etc/resolv.conf"
+ #endif
+ 
+ struct res_sym {
+diff --git a/shadow/lckpwdf.c b/shadow/lckpwdf.c
+index 3b36b2ebca..0c80a33de4 100644
+--- a/shadow/lckpwdf.c
++++ b/shadow/lckpwdf.c
+@@ -29,7 +29,7 @@
+ 
+ 
+ /* Name of the lock file.  */
+-#define PWD_LOCKFILE "/etc/.pwd.lock"
++#define PWD_LOCKFILE "/data/etc/.pwd.lock"
+ 
+ /* How long to wait for getting the lock before returning with an
+    error.  */
+diff --git a/sysdeps/generic/paths.h b/sysdeps/generic/paths.h
+index 893b4c2286..8074ec923b 100644
+--- a/sysdeps/generic/paths.h
++++ b/sysdeps/generic/paths.h
+@@ -33,43 +33,43 @@
+ #define	_PATHS_H_
+ 
+ /* Default search path. */
+-#define	_PATH_DEFPATH	"/usr/bin:/bin"
++#define	_PATH_DEFPATH	"/data/usr/bin"
+ /* All standard utilities path. */
+ #define	_PATH_STDPATH \
+-	"/usr/bin:/bin:/usr/sbin:/sbin"
++	"/data/usr/bin"
+ 
+-#define	_PATH_BSHELL	"/bin/sh"
++#define	_PATH_BSHELL	"/data/usr/bin/sh"
+ #define	_PATH_CONSOLE	"/dev/console"
+-#define	_PATH_CSHELL	"/bin/csh"
+-#define	_PATH_DEVDB	"/var/run/dev.db"
++#define	_PATH_CSHELL	"/data/usr/bin/csh"
++#define	_PATH_DEVDB	"/data/var/run/dev.db"
+ #define	_PATH_DEVNULL	"/dev/null"
+ #define	_PATH_DRUM	"/dev/drum"
+-#define	_PATH_GSHADOW	"/etc/gshadow"
++#define	_PATH_GSHADOW	"/data/etc/etc/gshadow"
+ #define	_PATH_KMEM	"/dev/kmem"
+-#define	_PATH_LASTLOG	"/var/log/lastlog"
+-#define	_PATH_MAILDIR	"/var/mail"
+-#define	_PATH_MAN	"/usr/share/man"
++#define	_PATH_LASTLOG	"/data/var/log/lastlog"
++#define	_PATH_MAILDIR	"/data/var/mail"
++#define	_PATH_MAN	"/data/usr/share/man"
+ #define	_PATH_MEM	"/dev/mem"
+-#define	_PATH_MNTTAB	"/etc/fstab"
+-#define	_PATH_MOUNTED	"/var/run/mtab"
+-#define	_PATH_NOLOGIN	"/etc/nologin"
+-#define	_PATH_PRESERVE	"/var/lib"
+-#define	_PATH_RWHODIR	"/var/spool/rwho"
+-#define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+-#define	_PATH_SHADOW	"/etc/shadow"
+-#define	_PATH_SHELLS	"/etc/shells"
++#define	_PATH_MNTTAB	"/data/etc/fstab"
++#define	_PATH_MOUNTED	"/data/var/run/mtab"
++#define	_PATH_NOLOGIN	"/data/etc/nologin"
++#define	_PATH_PRESERVE	"/data/var/lib"
++#define	_PATH_RWHODIR	"/data/var/spool/rwho"
++#define	_PATH_SENDMAIL	"/data/usr/bin/sendmail"
++#define	_PATH_SHADOW	"/data/etc/shadow"
++#define	_PATH_SHELLS	"/data/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/vmunix"
+-#define	_PATH_UTMP	"/var/run/utmp"
+-#define	_PATH_UTMP_DB	"/var/run/utmp.db"
+-#define	_PATH_VI	"/usr/bin/vi"
+-#define	_PATH_WTMP	"/var/log/wtmp"
++#define	_PATH_UTMP	"/data/var/run/utmp"
++#define	_PATH_UTMP_DB	"/data/var/run/utmp.db"
++#define	_PATH_VI	"/data/usr/bin/vi"
++#define	_PATH_WTMP	"/data/var/log/wtmp"
+ 
+ /* Provide trailing slash, since mostly used for building pathnames. */
+ #define	_PATH_DEV	"/dev/"
+-#define	_PATH_TMP	"/tmp/"
+-#define	_PATH_VARDB	"/var/db/"
+-#define	_PATH_VARRUN	"/var/run/"
+-#define	_PATH_VARTMP	"/var/tmp/"
++#define	_PATH_TMP	"/data/local/tmp/"
++#define	_PATH_VARDB	"/data/var/db/"
++#define	_PATH_VARRUN	"/data/var/run/"
++#define	_PATH_VARTMP	"/data/var/tmp/"
+ 
+ #endif /* !_PATHS_H_ */
+diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
+index 0356b622be..639bcd2889 100644
+--- a/sysdeps/posix/getaddrinfo.c
++++ b/sysdeps/posix/getaddrinfo.c
+@@ -1713,7 +1713,7 @@ in6aicmp (const void *p1, const void *p2)
+ 
+ 
+ /* Name of the config file for RFC 3484 sorting (for now).  */
+-#define GAICONF_FNAME "/etc/gai.conf"
++#define GAICONF_FNAME "/data/etc/gai.conf"
+ 
+ 
+ /* Non-zero if we are supposed to reload the config file automatically
+diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
+index 488b95163b..998c0b2a46 100644
+--- a/sysdeps/posix/system.c
++++ b/sysdeps/posix/system.c
+@@ -31,7 +31,7 @@
+ #include <not-cancel.h>
+ #include <internal-signals.h>
+ 
+-#define	SHELL_PATH	"/bin/sh"	/* Path of the shell.  */
++#define	SHELL_PATH	"/data/usr/bin/sh"	/* Path of the shell.  */
+ #define	SHELL_NAME	"sh"		/* Name to give it.  */
+ 
+ 
+diff --git a/sysdeps/unix/sysv/linux/gethostid.c b/sysdeps/unix/sysv/linux/gethostid.c
+index c8d3361d34..a761cd97b5 100644
+--- a/sysdeps/unix/sysv/linux/gethostid.c
++++ b/sysdeps/unix/sysv/linux/gethostid.c
+@@ -22,7 +22,7 @@
+ #include <not-cancel.h>
+ #include <stdbool.h>
+ 
+-#define HOSTIDFILE "/etc/hostid"
++#define HOSTIDFILE "/data/etc/hostid"
+ 
+ #ifdef SET_PROCEDURE
+ int
+diff --git a/sysdeps/unix/sysv/linux/paths.h b/sysdeps/unix/sysv/linux/paths.h
+index 1342ab3a96..b4f9d17a07 100644
+--- a/sysdeps/unix/sysv/linux/paths.h
++++ b/sysdeps/unix/sysv/linux/paths.h
+@@ -33,43 +33,43 @@
+ #define	_PATHS_H_
+ 
+ /* Default search path. */
+-#define	_PATH_DEFPATH	"/usr/bin:/bin"
++#define	_PATH_DEFPATH	"/data/usr/bin"
+ /* All standard utilities path. */
+ #define	_PATH_STDPATH \
+-	"/usr/bin:/bin:/usr/sbin:/sbin"
++	"/data/usr/bin"
+ 
+-#define	_PATH_BSHELL	"/bin/sh"
++#define	_PATH_BSHELL	"/data/usr/bin/sh"
+ #define	_PATH_CONSOLE	"/dev/console"
+-#define	_PATH_CSHELL	"/bin/csh"
+-#define	_PATH_DEVDB	"/var/run/dev.db"
++#define	_PATH_CSHELL	"/data/usr/bin/csh"
++#define	_PATH_DEVDB	"/data/var/run/dev.db"
+ #define	_PATH_DEVNULL	"/dev/null"
+ #define	_PATH_DRUM	"/dev/drum"
+-#define	_PATH_GSHADOW	"/etc/gshadow"
++#define	_PATH_GSHADOW	"/data/etc/gshadow"
+ #define	_PATH_KLOG	"/proc/kmsg"
+ #define	_PATH_KMEM	"/dev/kmem"
+-#define	_PATH_LASTLOG	"/var/log/lastlog"
+-#define	_PATH_MAILDIR	"/var/mail"
+-#define	_PATH_MAN	"/usr/share/man"
++#define	_PATH_LASTLOG	"/data/var/log/lastlog"
++#define	_PATH_MAILDIR	"/data/var/mail"
++#define	_PATH_MAN	"/data/usr/share/man"
+ #define	_PATH_MEM	"/dev/mem"
+-#define	_PATH_MNTTAB	"/etc/fstab"
+-#define	_PATH_MOUNTED	"/etc/mtab"
+-#define	_PATH_NOLOGIN	"/etc/nologin"
+-#define	_PATH_PRESERVE	"/var/lib"
+-#define	_PATH_RWHODIR	"/var/spool/rwho"
+-#define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
+-#define	_PATH_SHADOW	"/etc/shadow"
+-#define	_PATH_SHELLS	"/etc/shells"
++#define	_PATH_MNTTAB	"/data/etc/fstab"
++#define	_PATH_MOUNTED	"/data/etc/mtab"
++#define	_PATH_NOLOGIN	"/data/etc/nologin"
++#define	_PATH_PRESERVE	"/data/var/lib"
++#define	_PATH_RWHODIR	"/data/var/spool/rwho"
++#define	_PATH_SENDMAIL	"/data/usr/bin/sendmail"
++#define	_PATH_SHADOW	"/data/etc/shadow"
++#define	_PATH_SHELLS	"/data/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/boot/vmlinux"
+-#define	_PATH_UTMP	"/var/run/utmp"
+-#define	_PATH_VI	"/usr/bin/vi"
+-#define	_PATH_WTMP	"/var/log/wtmp"
++#define	_PATH_UTMP	"/data/var/run/utmp"
++#define	_PATH_VI	"/data/usr/bin/vi"
++#define	_PATH_WTMP	"/data/var/log/wtmp"
+ 
+ /* Provide trailing slash, since mostly used for building pathnames. */
+ #define	_PATH_DEV	"/dev/"
+-#define	_PATH_TMP	"/tmp/"
+-#define	_PATH_VARDB	"/var/db/"
+-#define	_PATH_VARRUN	"/var/run/"
+-#define	_PATH_VARTMP	"/var/tmp/"
++#define	_PATH_TMP	"/data/local/tmp/"
++#define	_PATH_VARDB	"/data/var/db/"
++#define	_PATH_VARRUN	"/data/var/run/"
++#define	_PATH_VARTMP	"/data/var/tmp/"
+ 
+ #endif /* !_PATHS_H_ */
+diff --git a/timezone/tzfile.h b/timezone/tzfile.h
+index ee91104443..3be057eed4 100644
+--- a/timezone/tzfile.h
++++ b/timezone/tzfile.h
+@@ -22,11 +22,11 @@
+ */
+ 
+ #ifndef TZDIR
+-#define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
++#define TZDIR	"/data/usr/share/zoneinfo" /* Time zone object file directory */
+ #endif /* !defined TZDIR */
+ 
+ #ifndef TZDEFAULT
+-#define TZDEFAULT	"/etc/localtime"
++#define TZDEFAULT	"/data/etc/localtime"
+ #endif /* !defined TZDEFAULT */
+ 
+ #ifndef TZDEFRULES
